@@ -32,9 +32,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="min-h-screen flex flex-col items-center">
-            {children}
-          </main>
+          <main className="min-h-screen">{children}</main>
         </ThemeProvider>
       </body>
     </html>
