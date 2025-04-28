@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import TrackedProblemsList from "@/components/dashboard/tracked-problems-list";
 import Sidebar from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
+import { TypographyH1, TypographyH2 } from "@/components/typography/typography";
 
 // Types
 interface TrackedProblem {
@@ -26,12 +27,13 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
   const params = await props.params;
 
   // Get the current user
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { data: user, error } = await supabase
+    .from("users")
+    .select("id, email, name")
+    .eq("id", params.id)
+    .single();
 
-  if (userError || !user) {
+  if (!user || error) {
     notFound();
   }
 
@@ -41,17 +43,11 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
   return (
     <div className="flex min-h-screen">
       <Sidebar user={user} />
-      <main className={`flex-1 transition-all duration-300 ml-64`}>
+      <main className={`flex-1 transition-all duration-300`}>
         <div className="container mx-auto space-y-6 p-6">
-          {isOwnDashboard && (
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Add New Problem</h2>
-              {/* <AddProblemSection userId={user.id} /> */}
-            </Card>
-          )}
-
+          <TypographyH1>Let's Grind! {user.name}</TypographyH1>
           <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-4">Tracked Problems</h2>
+            <TypographyH2>Tracked Problems</TypographyH2>
             {/* <TrackedProblemsList
               problems={trackedProblems || []}
               isEditable={isOwnDashboard}

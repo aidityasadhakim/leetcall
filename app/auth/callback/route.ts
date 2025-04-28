@@ -10,9 +10,10 @@ export async function GET(request: Request) {
   const origin = requestUrl.origin;
   const redirectTo = requestUrl.searchParams.get("redirect_to")?.toString();
 
+  let user;
   if (code) {
     const supabase = await createClient();
-    await supabase.auth.exchangeCodeForSession(code);
+    user = await supabase.auth.exchangeCodeForSession(code);
   }
 
   if (redirectTo) {
@@ -20,5 +21,5 @@ export async function GET(request: Request) {
   }
 
   // URL to redirect to after sign up process completes
-  return NextResponse.redirect(`${origin}/protected`);
+  return NextResponse.redirect(`${origin}/dashboard/${user?.data?.user?.id}`);
 }

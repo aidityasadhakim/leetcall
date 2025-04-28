@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User } from "@supabase/supabase-js";
 import { Home, Folder, Share2, Settings, Menu, Check } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { signOutAction } from "@/app/actions";
@@ -21,6 +20,11 @@ import {
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 type SidebarState = "expanded" | "collapsed" | "hover";
+type User = {
+  id: string;
+  email: string | null;
+  name: string | null;
+};
 
 interface SidebarProps {
   user: User | null;
