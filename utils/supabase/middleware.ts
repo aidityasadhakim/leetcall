@@ -48,14 +48,13 @@ export const updateSession = async (request: NextRequest) => {
     const pathname = request.nextUrl.pathname;
 
     // Allow access to public routes regardless of auth status
-    if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+    if (PUBLIC_ROUTES.some((route) => pathname === route)) {
       // Redirect authenticated users away from auth pages
       if (
         user &&
         (pathname.startsWith("/sign-in") ||
           pathname.startsWith("/sign-up") ||
-          pathname.startsWith("/forgot-password") ||
-          pathname === "/")
+          pathname.startsWith("/forgot-password"))
       ) {
         return NextResponse.redirect(
           new URL(`/dashboard/${user.id}`, request.url)
@@ -69,6 +68,9 @@ export const updateSession = async (request: NextRequest) => {
       const searchParams = new URLSearchParams({
         redirectedFrom: pathname,
       });
+      console.log(
+        `User not found or error: ${error?.message}. Redirecting to sign-in page.`
+      );
       return NextResponse.redirect(
         new URL(`/sign-in?${searchParams}`, request.url)
       );

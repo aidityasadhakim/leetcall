@@ -42,4 +42,4 @@ next-env.d.ts
 
 .vscode
 .github/copilot-instructions.md
-.github/*.prompt.md
+.github/prompts
