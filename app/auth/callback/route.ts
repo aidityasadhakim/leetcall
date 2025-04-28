@@ -11,8 +11,8 @@ export async function GET(request: Request) {
   const redirectTo = requestUrl.searchParams.get("redirect_to")?.toString();
 
   let user;
+  const supabase = await createClient();
   if (code) {
-    const supabase = await createClient();
     user = await supabase.auth.exchangeCodeForSession(code);
   }
 
@@ -20,6 +20,16 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}${redirectTo}`);
   }
 
+  const { data: workspaceData, error: workspaceError } = await supabase
+    .from("workspaces")
+    .select("id")
+    .eq("owner_user_id", user?.data?.user?.id)
+    .single();
+
+  if (workspaceError) {
+    return NextResponse.error();
+  }
+
   // URL to redirect to after sign up process completes
-  return NextResponse.redirect(`${origin}/dashboard/${user?.data?.user?.id}`);
+  return NextResponse.redirect(`${origin}/dashboard/${workspaceData?.id}`); // Redirect to the user's dashboard
 }

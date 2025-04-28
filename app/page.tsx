@@ -10,10 +10,24 @@ export default async function Home() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  let workspaceId;
+  if (user) {
+    const { data, error } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("owner_user_id", user.id)
+      .single();
+    if (data) {
+      workspaceId = data.id;
+    }
+    if (error) {
+      console.error("Error fetching workspace ID:", error);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar user={user} />
+      <Navbar workspaceId={workspaceId} />
       <main className="container flex-1 pt-32 pb-16">
         <HeroSection />
         <FeaturesSection />

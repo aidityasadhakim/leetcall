@@ -4,6 +4,7 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { permitClient } from "../utils/permit/client";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -19,7 +20,10 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
-  const { error } = await supabase.auth.signUp({
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -30,6 +34,77 @@ export const signUpAction = async (formData: FormData) => {
     },
   });
   console.log(error);
+
+  if (user) {
+    // Fetch user's created workspace
+    const { data: workspaceData, error: workspaceError } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("owner_user_id", user.id)
+      .single();
+
+    if (workspaceError) {
+      console.error("Error fetching workspace ID:", workspaceError);
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Could not fetch workspace ID"
+      );
+    }
+
+    // If user exists, sync with Permit and create a new instance resource with the user's ID as the key
+    try {
+      await permitClient.api.createUser({
+        key: user.id,
+        email: user.email,
+        first_name: formData.get("name")?.toString(),
+      });
+      await permitClient.api.syncUser({
+        key: user.id,
+        email: user.email,
+        first_name: formData.get("name")?.toString(),
+      });
+      await permitClient.api.users.assignRole({
+        user: user.id,
+        role: "user",
+        tenant: "default",
+      });
+    } catch (error) {
+      console.error("Error syncing user with Permit:", error);
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Could not sync user with Permit"
+      );
+    }
+
+    // Create a new resource instance for the user workspace in Permit
+    try {
+      await permitClient.api.resourceInstances.create({
+        key: workspaceData.id,
+        resource: "workspace",
+        tenant: "default",
+      });
+    } catch (error) {
+      console.error("Error creating user workspace in Permit:", error);
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Could not create user workspace in Permit"
+      );
+    }
+
+    // Assign roles to the user's workspace in Permit
+    try {
+      await permitClient.api.users.assignRole({
+        user: user.id,
+        resource_instance: `workspace:${workspaceData.id}`,
+        role: "owner",
+      });
+    } catch (error) {
+      console.error("Error assigning roles to user workspace:", error);
+    }
+  }
 
   if (error) {
     console.error(error.code + " " + error.message);
@@ -57,7 +132,18 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  return redirect(`/dashboard/${data.user?.id}`);
+  const { data: workspaceData, error: workspaceError } = await supabase
+    .from("workspaces")
+    .select("id")
+    .eq("owner_user_id", data.user?.id)
+    .single();
+
+  if (workspaceError) {
+    console.error("Error fetching workspace ID:", workspaceError);
+    return encodedRedirect("error", "/sign-in", "Could not fetch workspace ID");
+  }
+
+  return redirect(`/dashboard/${workspaceData.id}`);
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {

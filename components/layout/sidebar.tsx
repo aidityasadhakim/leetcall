@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, Folder, Share2, Settings, Menu, Check } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { signOutAction } from "@/app/actions";
+import { User } from "@supabase/supabase-js";
 
 // Components
 import { Button } from "@/components/ui/button";
@@ -20,21 +21,16 @@ import {
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 type SidebarState = "expanded" | "collapsed" | "hover";
-type User = {
-  id: string;
-  email: string | null;
-  name: string | null;
-};
 
 interface SidebarProps {
   user: User | null;
 }
 
-const HOVER_DELAY = 200; // milliseconds
+const HOVER_DELAY = 100; // milliseconds
 
 const Sidebar = ({ user }: SidebarProps) => {
   const pathname = usePathname();
-  const [sidebarState, setSidebarState] = useState<SidebarState>("expanded");
+  const [sidebarState, setSidebarState] = useState<SidebarState>("hover");
   const [isHovered, setIsHovered] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -205,7 +201,7 @@ const Sidebar = ({ user }: SidebarProps) => {
                     }`}
                   >
                     <span className="font-medium">
-                      {user?.email?.split("@")[0] || "User"}
+                      {user?.user_metadata.name}
                     </span>
                     <span className="text-muted-foreground text-xs">
                       {user?.email || "Not signed in"}
