@@ -140,3 +140,118 @@ export const addTrackedProblem = async (
     return { error: "An unexpected error occurred" };
   }
 };
+
+export const reviewTrackedProblem = async (
+  user: User,
+  trackedProblemId: string,
+  score: number
+) => {
+  // Implement the review logic here
+  // This function should update the tracked problem's next review date,
+  // repetitions count, and ease factor based on the user's input.
+  // You can use the SM-2 algorithm for this.
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tracked_problems")
+    .select("*")
+    .eq("id", trackedProblemId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching tracked problem:", error);
+    throw new Error("Failed to fetch tracked problem");
+  }
+
+  if (
+    !(await permitClient.check(user.id, "review", {
+      key: data.workspace_id,
+      type: "workspace",
+    }))
+  ) {
+    console.error(
+      "Permission denied for user:",
+      user.id,
+      "on workspace:",
+      data.workspace_id
+    );
+    return { error: "Permission denied" };
+  }
+  let nextReviewDate = new Date();
+  nextReviewDate.setUTCHours(0, 0, 0, 0); // Set to start of UTC day
+
+  // calculateFormulaFunction(n, score, learningSteps) = ((n reps - 2) * (review score / 3)) * learning steps
+  const calculateFormulaFunction = (
+    n: number,
+    score: number,
+    learningStep: number
+  ) => {
+    if (score === 0) {
+      return 1;
+    }
+    if (n === 1) {
+      return Math.round(n * (score / 3) * learningStep);
+    }
+    return Math.round((n - 1) * (score / 3) * learningStep);
+  };
+
+  // Learning steps [1,3,7]
+
+  // if reps == 0, set interval to 1 day
+  if (data.repetitions_count === 0) {
+    // Set interval to 1 day
+    nextReviewDate.setDate(nextReviewDate.getDate() + 1);
+  }
+  // if reps == 1, set interval to calulateFormulaFunction(1, score, 3)
+  if (data.repetitions_count === 1) {
+    // Set interval to calculateFormulaFunction(1, score, 3)
+    nextReviewDate.setDate(
+      nextReviewDate.getDate() +
+        calculateFormulaFunction(data.repetitions_count, score, 3)
+    );
+  }
+
+  // if reps == 2, set interval to calculateFormulaFunction(n reps, score, 7)
+  if (data.repetitions_count >= 2) {
+    console.log(nextReviewDate.toISOString());
+    console.log(
+      "formulaCalculation result",
+      calculateFormulaFunction(data.repetitions_count, score, 7)
+    );
+    nextReviewDate.setDate(
+      nextReviewDate.getDate() +
+        calculateFormulaFunction(data.repetitions_count, score, 7)
+    );
+    console.log(nextReviewDate.toISOString());
+  }
+
+  const { error: updateError } = await supabase
+    .from("tracked_problems")
+    .update({
+      next_review_date: nextReviewDate.toISOString(),
+      repetitions_count: data.repetitions_count + 1,
+      last_reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", trackedProblemId);
+
+  const { error: createReviewError } = await supabase.from("reviews").insert({
+    tracked_problem_id: trackedProblemId,
+    quality_rating: score,
+    reviewed_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+
+  if (updateError || createReviewError) {
+    console.error(
+      "Error updating tracked problem:",
+      updateError || createReviewError
+    );
+    throw new Error("Failed to update tracked problem");
+  }
+
+  // Revalidate the page to show updated data
+  revalidatePath(`/dashboard/${data.workspace_id}`);
+
+  return { nextReviewDate };
+};

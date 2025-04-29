@@ -56,6 +56,21 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
     notFound();
   }
 
+  const userWorkspaceAccess = {
+    userReadAccess: await permitClient.check(user.id, "read", {
+      key: params.id,
+      type: "workspace",
+    }),
+    userCreateAccess: await permitClient.check(user.id, "create", {
+      key: params.id,
+      type: "workspace",
+    }),
+    userReviewAccess: await permitClient.check(user.id, "review", {
+      key: params.id,
+      type: "workspace",
+    }),
+  };
+
   const userReadAccess = await permitClient.check(user.id, "read", {
     key: params.id,
     type: "workspace",
@@ -88,7 +103,8 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
       )
     `
     )
-    .eq("workspace_id", params.id)) as {
+    .eq("workspace_id", params.id)
+    .order("next_review_date", { ascending: true })) as {
     data: TrackedProblemWithLeetCode[] | null;
   };
 
@@ -134,7 +150,11 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
           <Card className="p-6">
             <TypographyH2>Due for Review</TypographyH2>
             <div className="mt-4">
-              <TrackedProblemsTable problems={dueProblems} type="due" />
+              <TrackedProblemsTable
+                user={user}
+                problems={dueProblems}
+                type="due"
+              />
             </div>
           </Card>
 
@@ -142,6 +162,7 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
             <TypographyH2>Upcoming Reviews</TypographyH2>
             <div className="mt-4">
               <TrackedProblemsTable
+                user={user}
                 problems={upcomingProblems}
                 type="upcoming"
               />

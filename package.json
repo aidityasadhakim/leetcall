@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "dbsync": "npx supabase@1.110.1 gen types typescript --project-id dpqionnflwcghegxxmfhs --schema public > ./lib/supabase.types.ts --debug"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.1",
@@ -33,6 +34,7 @@
     "use-debounce": "^10.0.4"
   },
   "devDependencies": {
+    "supabase": "1.110.1",
     "@types/node": "22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "19.0.2",

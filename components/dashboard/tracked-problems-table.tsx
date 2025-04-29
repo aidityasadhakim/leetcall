@@ -10,6 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ReviewDialog } from "./review-dialog";
+import { User } from "@supabase/supabase-js";
 
 type TrackedProblem = {
   id: string;
@@ -23,11 +25,13 @@ type TrackedProblem = {
 interface TrackedProblemsTableProps {
   problems: TrackedProblem[];
   type: "due" | "upcoming";
+  user: User;
 }
 
 export const TrackedProblemsTable = ({
   problems,
   type,
+  user,
 }: TrackedProblemsTableProps) => {
   return (
     <div className="rounded-md border">
@@ -38,7 +42,7 @@ export const TrackedProblemsTable = ({
             <TableHead>Difficulty</TableHead>
             <TableHead>{type === "due" ? "Due Date" : "Next Review"}</TableHead>
             <TableHead>Last Review</TableHead>
-            <TableHead>Reviews</TableHead>
+            {type === "due" && <TableHead>Action</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -66,7 +70,15 @@ export const TrackedProblemsTable = ({
                   ? problem.last_reviewed_at.toLocaleDateString()
                   : "Never"}
               </TableCell>
-              <TableCell>{problem.repetitions_count}</TableCell>
+              {type === "due" && (
+                <TableCell>
+                  <ReviewDialog 
+                    user={user}
+                    trackedProblemId={problem.id}
+                    problemTitle={problem.title}
+                  />
+                </TableCell>
+              )}
             </TableRow>
           ))}
           {problems.length === 0 && (

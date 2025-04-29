@@ -46,7 +46,7 @@ const Sidebar = ({ user }: SidebarProps) => {
     },
     {
       name: "My Workspace",
-      href: `/dashboard/${user?.id}`,
+      href: `/dashboard/`,
       icon: Folder,
     },
     {
