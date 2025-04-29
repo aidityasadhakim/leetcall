@@ -26,12 +26,18 @@ interface TrackedProblemsTableProps {
   problems: TrackedProblem[];
   type: "due" | "upcoming";
   user: User;
+  userWorkspaceAccess: {
+    read: boolean;
+    create: boolean;
+    review: boolean;
+  };
 }
 
 export const TrackedProblemsTable = ({
   problems,
   type,
   user,
+  userWorkspaceAccess,
 }: TrackedProblemsTableProps) => {
   return (
     <div className="rounded-md border">
@@ -42,7 +48,9 @@ export const TrackedProblemsTable = ({
             <TableHead>Difficulty</TableHead>
             <TableHead>{type === "due" ? "Due Date" : "Next Review"}</TableHead>
             <TableHead>Last Review</TableHead>
-            {type === "due" && <TableHead>Action</TableHead>}
+            {type === "due" && userWorkspaceAccess.review && (
+              <TableHead>Action</TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -70,9 +78,9 @@ export const TrackedProblemsTable = ({
                   ? problem.last_reviewed_at.toLocaleDateString()
                   : "Never"}
               </TableCell>
-              {type === "due" && (
+              {type === "due" && userWorkspaceAccess.review && (
                 <TableCell>
-                  <ReviewDialog 
+                  <ReviewDialog
                     user={user}
                     trackedProblemId={problem.id}
                     problemTitle={problem.title}

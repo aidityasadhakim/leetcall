@@ -57,33 +57,22 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
   }
 
   const userWorkspaceAccess = {
-    userReadAccess: await permitClient.check(user.id, "read", {
+    read: await permitClient.check(user.id, "read", {
       key: params.id,
       type: "workspace",
     }),
-    userCreateAccess: await permitClient.check(user.id, "create", {
+    create: await permitClient.check(user.id, "create", {
       key: params.id,
       type: "workspace",
     }),
-    userReviewAccess: await permitClient.check(user.id, "review", {
+    review: await permitClient.check(user.id, "review", {
       key: params.id,
       type: "workspace",
     }),
   };
 
-  const userReadAccess = await permitClient.check(user.id, "read", {
-    key: params.id,
-    type: "workspace",
-  });
-
-  const userCreateAccess = await permitClient.check(user.id, "create", {
-    key: params.id,
-    type: "workspace",
-  });
-  console.log(userCreateAccess);
-
   // Return unauthorized access component if user doesn't have read access
-  if (!userReadAccess) {
+  if (!userWorkspaceAccess.read) {
     return <UnauthorizedAccess />;
   }
 
@@ -141,8 +130,8 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
       <main className="flex-1">
         <div className="container mx-auto space-y-6 p-6 pt-32">
           <div className="flex justify-between items-center">
-            <TypographyH1>Let&apos;s Grind!</TypographyH1>
-            {userCreateAccess && (
+            <TypographyH1>Let&apos;s Grind! 🔥🔥🔥 </TypographyH1>
+            {userWorkspaceAccess.create && (
               <AddProblemDialog user={user} workspaceId={params.id} />
             )}
           </div>
@@ -154,6 +143,7 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
                 user={user}
                 problems={dueProblems}
                 type="due"
+                userWorkspaceAccess={userWorkspaceAccess}
               />
             </div>
           </Card>
@@ -165,6 +155,7 @@ const DashboardPage = async (props: { params: Promise<PageProps> }) => {
                 user={user}
                 problems={upcomingProblems}
                 type="upcoming"
+                userWorkspaceAccess={userWorkspaceAccess}
               />
             </div>
           </Card>
