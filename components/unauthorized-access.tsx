@@ -15,8 +15,8 @@ export const UnauthorizedAccess = () => {
         </div>
         <TypographyH2 className="text-center">Access Denied</TypographyH2>
         <TypographyP className="text-center text-muted-foreground">
-          You don&apos;t have permission to access this workspace. Please contact the workspace owner
-          if you believe this is a mistake.
+          You don&apos;t have permission to access this workspace. Please
+          contact the workspace owner if you believe this is a mistake.
         </TypographyP>
         <div className="flex justify-center pt-2">
           <Button asChild>
