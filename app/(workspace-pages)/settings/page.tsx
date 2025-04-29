@@ -6,6 +6,7 @@ import { WorkspaceSharingTable } from "@/components/settings/workspace-sharing-t
 import { AddShareDialog } from "@/components/settings/add-share-dialog";
 import { Card } from "@/components/ui/card";
 import { TypographyH1, TypographyH2 } from "@/components/typography/typography";
+import Sidebar from "@/components/layout/sidebar";
 
 interface Share {
   id: string;
@@ -59,24 +60,27 @@ const SettingsPage = async () => {
   console.log(typedShares);
 
   return (
-    <main className="container py-6 space-y-8">
-      <TypographyH1>Settings</TypographyH1>
+    <div className="flex min-h-screen">
+      <Sidebar user={userData.user} />
+      <main className="container py-6 space-y-8">
+        <TypographyH1>Settings</TypographyH1>
 
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <TypographyH2>Workspace Sharing</TypographyH2>
-          <AddShareDialog
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <TypographyH2>Workspace Sharing</TypographyH2>
+            <AddShareDialog
+              workspaceId={workspaceData.id}
+              currentShareCount={typedShares.length}
+            />
+          </div>
+
+          <WorkspaceSharingTable
             workspaceId={workspaceData.id}
-            currentShareCount={typedShares.length}
+            shares={typedShares}
           />
-        </div>
-
-        <WorkspaceSharingTable
-          workspaceId={workspaceData.id}
-          shares={typedShares}
-        />
-      </Card>
-    </main>
+        </Card>
+      </main>
+    </div>
   );
 };
 

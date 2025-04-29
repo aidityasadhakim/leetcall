@@ -1,11 +1,20 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Folder, Share2, Settings, Menu, Check } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import {
+  Home,
+  Folder,
+  Share2,
+  Settings,
+  Menu,
+  Check,
+  ChevronRight,
+} from "lucide-react";
 import { signOutAction } from "@/app/actions";
 import { User } from "@supabase/supabase-js";
+import { useQuery } from "@tanstack/react-query";
 
 // Components
 import { Button } from "@/components/ui/button";
@@ -17,8 +26,26 @@ import {
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { getSharedWorkspaces } from "../settings/actions/workspace-shares";
+import { Badge } from "@/components/ui/badge";
+
+interface SharedWorkspace {
+  id: string;
+  role: string;
+  workspace_id: string;
+  workspaces: {
+    id: string;
+    owner_user_id: string;
+    users: {
+      name: string;
+    }[];
+  };
+}
 
 type SidebarState = "expanded" | "collapsed" | "hover";
 
@@ -35,6 +62,18 @@ const Sidebar = ({ user }: SidebarProps) => {
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // Add shared workspaces query
+  const { data: sharedWorkspaces } = useQuery({
+    queryKey: ["shared-workspaces", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { shares: [] };
+      return getSharedWorkspaces(user.id);
+    },
+    enabled: !!user?.id,
+  });
+
+  console.log(sharedWorkspaces);
+
   const isCollapsed =
     sidebarState === "collapsed" || (sidebarState === "hover" && !isHovered);
 
@@ -48,16 +87,6 @@ const Sidebar = ({ user }: SidebarProps) => {
       name: "My Workspace",
       href: `/dashboard/`,
       icon: Folder,
-    },
-    {
-      name: "Shared Workspaces",
-      href: "/shared",
-      icon: Share2,
-    },
-    {
-      name: "Settings",
-      href: "/settings",
-      icon: Settings,
     },
   ];
 
@@ -105,8 +134,8 @@ const Sidebar = ({ user }: SidebarProps) => {
     >
       <Card className="h-full">
         <div className="flex h-full flex-col justify-between p-3">
-          {/* Top Navigation Section */}
           <div className="space-y-2">
+            {/* Existing dropdown menu for sidebar control */}
             <div className="flex justify-between items-center mb-4">
               <DropdownMenu onOpenChange={setIsDropdownOpen}>
                 <DropdownMenuTrigger asChild>
@@ -181,6 +210,81 @@ const Sidebar = ({ user }: SidebarProps) => {
                   </Link>
                 );
               })}
+
+              {/* Shared Workspaces Dropdown */}
+              <DropdownMenu onOpenChange={setIsDropdownOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={`w-full justify-start space-x-2 rounded-lg px-3 py-2 transition-colors hover:bg-accent ${
+                      pathname.startsWith("/dashboard/") &&
+                      pathname !== "/dashboard/"
+                        ? "bg-accent"
+                        : ""
+                    }`}
+                  >
+                    <Share2 className="h-5 w-5 flex-shrink-0" />
+                    <span
+                      className={`transition-opacity duration-300 flex-1 text-left ${
+                        isCollapsed ? "opacity-0 w-0" : "opacity-100"
+                      }`}
+                    >
+                      Shared Workspaces
+                    </span>
+                    {!isCollapsed &&
+                      (isDropdownOpen ? (
+                        <ChevronRight className="h-4 w-4 flex-shrink-0 rotate-90" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                      ))}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  side="bottom"
+                  className="w-56"
+                  style={{ zIndex: 101 }}
+                >
+                  {sharedWorkspaces?.shares?.length === 0 ? (
+                    <DropdownMenuItem disabled>
+                      No shared workspaces
+                    </DropdownMenuItem>
+                  ) : (
+                    sharedWorkspaces?.shares?.map((share: any) => (
+                      <DropdownMenuItem key={share.id} asChild>
+                        <Link
+                          href={`/dashboard/${share.workspaces.id}`}
+                          className="flex items-center justify-between"
+                        >
+                          <span className="truncate">
+                            {share.workspaces.users.name || "Unknown"}
+                            &apos;s Workspace
+                          </span>
+                          <Badge variant="secondary" className="ml-2">
+                            {share.role}
+                          </Badge>
+                        </Link>
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Settings Link */}
+              <Link
+                href="/settings"
+                className={`flex items-center space-x-2 rounded-lg px-3 py-2 transition-colors hover:bg-accent ${
+                  pathname === "/settings" ? "bg-accent" : ""
+                }`}
+              >
+                <Settings className="h-5 w-5 flex-shrink-0" />
+                <span
+                  className={`transition-opacity duration-300 ${
+                    isCollapsed ? "opacity-0 w-0" : "opacity-100"
+                  }`}
+                >
+                  Settings
+                </span>
+              </Link>
             </nav>
           </div>
 

@@ -209,6 +209,37 @@ export const updateWorkspaceShare = async (
   return { success: true };
 };
 
+export const getSharedWorkspaces = async (userId: string) => {
+  const supabase = await createClient();
+
+  // Get shared workspaces for the user
+  const { data: shares, error } = await supabase
+    .from("workspace_shares")
+    .select(
+      `
+      id,
+      role,
+      workspace_id,
+      workspaces (
+        id,
+        owner_user_id,
+        users (
+          name
+        )
+      )
+    `
+    )
+    .eq("shared_user_id", userId)
+    .limit(5);
+
+  if (error) {
+    console.error("Error fetching shared workspaces:", error);
+    return { error: "Failed to fetch shared workspaces" };
+  }
+
+  return { shares };
+};
+
 type UserPermissions = {
   [key: string]: {
     tenant: {
