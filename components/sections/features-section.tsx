@@ -2,7 +2,7 @@ const features = [
   {
     title: "Smart Review Scheduling",
     description:
-      "Our SM-2 algorithm adapts to your learning pace, optimizing review intervals for maximum retention.",
+      "Our Space Repetition algorithm adapts to your learning pace, optimizing review intervals for maximum retention.",
   },
   {
     title: "Problem Tracking",
