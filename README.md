@@ -2,6 +2,8 @@
 
 LeetCall is a sophisticated web application designed to help developers effectively learn and retain LeetCode problem solutions using the proven principles of spaced repetition learning.
 
+## Visit LeetCall at [LeetCall App](https://leetcall.vercel.app)
+
 ## Features
 
 - 🧠 **Smart Review Scheduling**: Automated review scheduling using the SM-2 spaced repetition algorithm
