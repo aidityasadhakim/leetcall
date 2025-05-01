@@ -213,16 +213,10 @@ export const reviewTrackedProblem = async (
 
   // if reps == 2, set interval to calculateFormulaFunction(n reps, score, 7)
   if (data.repetitions_count >= 2) {
-    console.log(nextReviewDate.toISOString());
-    console.log(
-      "formulaCalculation result",
-      calculateFormulaFunction(data.repetitions_count, score, 7)
-    );
     nextReviewDate.setDate(
       nextReviewDate.getDate() +
         calculateFormulaFunction(data.repetitions_count, score, 7)
     );
-    console.log(nextReviewDate.toISOString());
   }
 
   const { error: updateError } = await supabase

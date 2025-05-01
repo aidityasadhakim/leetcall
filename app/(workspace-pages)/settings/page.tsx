@@ -44,8 +44,6 @@ const SettingsPage = async () => {
     return null;
   }
 
-  // console.log(shares);
-
   // Transform the data to match the expected Share interface
   const typedShares: Share[] = (shares || []).map((share: any) => ({
     id: share.id,
@@ -57,7 +55,6 @@ const SettingsPage = async () => {
       email: share.users.email || "",
     },
   }));
-  console.log(typedShares);
 
   return (
     <div className="flex min-h-screen">

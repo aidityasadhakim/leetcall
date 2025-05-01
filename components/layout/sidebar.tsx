@@ -72,8 +72,6 @@ const Sidebar = ({ user }: SidebarProps) => {
     enabled: !!user?.id,
   });
 
-  console.log(sharedWorkspaces);
-
   const isCollapsed =
     sidebarState === "collapsed" || (sidebarState === "hover" && !isHovered);
 
@@ -216,12 +214,7 @@ const Sidebar = ({ user }: SidebarProps) => {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className={`w-full justify-start space-x-2 rounded-lg px-3 py-2 transition-colors hover:bg-accent ${
-                      pathname.startsWith("/dashboard/") &&
-                      pathname !== "/dashboard/"
-                        ? "bg-accent"
-                        : ""
-                    }`}
+                    className={`w-full justify-start space-x-2 rounded-lg px-3 py-2 transition-colors hover:bg-accent`}
                   >
                     <Share2 className="h-5 w-5 flex-shrink-0" />
                     <span

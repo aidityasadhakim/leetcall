@@ -168,7 +168,6 @@ export const updateWorkspaceShare = async (
   // Update role in PermitIO - first remove all possible roles
   try {
     const roles = ["viewer", "reviewer", "editor"] as const;
-    console.log("revoking access");
     for (const role of roles) {
       try {
         await permitClient.api.users.unassignRole({
@@ -187,7 +186,6 @@ export const updateWorkspaceShare = async (
       }
     }
 
-    console.log("assigning new role");
     // Assign new role
     await permitClient.api.users.assignRole({
       tenant: "default",
